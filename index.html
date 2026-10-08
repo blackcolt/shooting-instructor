@@ -382,10 +382,13 @@ $("reset").onclick=()=>{IDS.forEach(id=>$(id).value="");Q_IDS.forEach(q=>{docume
 
 // --- bidi: logical -> visual for a font that draws left-to-right ---
 const MIRROR={"(":")",")":"(","[":"]","]":"[","{":"}","}":"{"};
+// fontkit (used by pdf-lib) detects Hebrew and reverses the whole glyph run itself, so Hebrew stays in
+// logical order; only embedded Latin/number runs must be pre-reversed (and brackets mirrored) so they
+// come out right after that reversal.
 function vis(s){
-  if(!/[֐-׿]/.test(s)) return s;
+  if(!/[\u0590-\u05FF]/.test(s)) return s;
   const runs=s.match(/[A-Za-z0-9]+(?:[.\/@:\-_][A-Za-z0-9]+)*|[^A-Za-z0-9]+|[A-Za-z0-9]+/g)||[];
-  return runs.reverse().map(r=>/^[A-Za-z0-9]/.test(r)?r:[...r].reverse().map(c=>MIRROR[c]||c).join("")).join("");
+  return runs.map(r=>/^[A-Za-z0-9]/.test(r)?[...r].reverse().join(""):[...r].map(c=>MIRROR[c]||c).join("")).join("");
 }
 function b64bytes(b){const s=atob(b);const a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a;}
 
